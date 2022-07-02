@@ -1,0 +1,136 @@
+#include <Keypad.h>
+#include <Wire.h>
+#include <LiquidCrystal.h>
+
+#define RGB_GREEN 30 //A1  //
+#define RGB_BLUE 32 //A2  //
+#define RGB_RED 34 //A3  //
+
+LiquidCrystal lcd(0, 1, 5, 4, 3, 2);
+
+byte caracter[8] = {
+  0b00000,
+  0b01110,
+  0b00000,
+  0b10110,
+  0b11001,
+  0b10001,
+  0b10001,
+  0b00000
+};
+
+int intentos = 0;
+//char customKey;
+const byte ROWS = 4; //four rows
+const byte COLS = 3; //three columns
+char keys[ROWS][COLS] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+byte rowPins[ROWS] = {12, 11, 10, 9}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {8, 7, 6}; //connect to the column pinouts of the keypad
+
+
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+//initialize an instance of class NewKeypad
+
+char contra[7];
+char realcontra[7] = "123456";
+byte index = 0;
+
+void setup() {
+  lcd.begin(16, 2); // inicializa
+  lcd.setCursor(0, 0);
+  lcd.print("  contrase");
+ 
+  lcd.createChar(1, caracter);
+  lcd.setCursor(10, 0);
+  lcd.write((byte)1);
+  lcd.print("a:");
+ 
+  pinMode (RGB_RED, OUTPUT);
+  pinMode (RGB_GREEN, OUTPUT);
+  pinMode (RGB_BLUE, OUTPUT);
+}
+
+void loop() {
+
+  //lcd.setCursor(12, 0);
+  //lcd.write(3);
+ 
+ 
+  char key = keypad.getKey(); //lee lo del teclado
+
+  if (key != NO_KEY) { // puede ser key
+    lcd.setCursor(index, 1);
+    lcd.print("*");
+
+    //Serial.println(key);
+    contra[index] = key;
+    index++;
+  }
+
+
+
+  if (index == 6) {
+    //lcd.clear();
+    byte validar = 0;
+   
+    for (int i = 0; i < 6; i++) {
+      // Serial.print(contra[i]);
+      if (contra[i] == realcontra[i]) {
+        validar++;
+      }
+    }
+
+    if (validar == 6) {
+      lcd.setCursor(0, 1);
+      lcd.print("   Correcto!");
+
+      RGB(0,1,0);
+      delay(1000);
+      RGB(0,0,0);
+      intentos = 0;
+      limpiarMsj();
+
+    } else {
+
+      lcd.setCursor(0, 1);
+      lcd.print("  incorrecto!");
+
+      RGB(1,1,1);
+      delay(1000);
+      RGB(0,0,0);
+     
+      limpiarMsj();
+      intentos++;
+    }
+    index = 0;
+  }
+
+  if (intentos == 3) {
+    lcd.setCursor(0, 1);
+    lcd.print("Sistema Bloqueado!");
+
+    RGB(1,0,0);
+    delay(5000);
+    RGB(0,0,0);
+     
+    limpiarMsj();
+    intentos = 0;
+  }
+
+}
+
+void limpiarMsj(){
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+}
+
+void RGB(int R, int G, int B){
+    digitalWrite(RGB_RED, R);
+    digitalWrite(RGB_GREEN, G);
+    digitalWrite(RGB_BLUE, B);  
+}
